@@ -1,11 +1,13 @@
 
 #region imports
-import pydata_google_auth
 import os
 import json
-from google.cloud import storage
-import pandas as pd
 from io import BytesIO
+
+from google.cloud import storage, bigquery
+import pandas as pd
+import pydata_google_auth
+
 #endregion
 
 #region globals
@@ -40,32 +42,18 @@ def download_blob_as_bytes(blob):
 #endregion
 
 #region big query
-import pandas_gbq
-import pandas as pd
-from google.cloud import bigquery
 
 def print_meta_data(_df):
-    ''' helper fx
-    '''
     print('shape =',_df.shape)
     print('columns = ',list(_df.columns))
     return _df
 
-def query_bq(sql):
-
-    gbq_params = {
-        'query':sql
-        ,'project_id': PROJECT_ID
-        ,'credentials': CREDENTIALS
-    }
-    # print(f'gbq_params={gbq_params}')
-    return (
-        pd.read_gbq(**gbq_params)
-        .pipe(print_meta_data)
-    )
+def query_bq(sql)->pd.DataFrame:
+    client = bigquery.Client(PROJECT_ID)
+    return client.query(sql).to_dataframe().pipe(print_meta_data)
 
 def delete_bq_table(dataset_name, table_name):
-    client = bigquery.Client(PROJECT_ID,CREDENTIALS)
+    client = bigquery.Client(PROJECT_ID)
     table_id = f'{dataset_name}.{table_name}'
     client.delete_table(table_id, not_found_ok=True) 
     print("Deleted table '{}'.".format(table_id))
