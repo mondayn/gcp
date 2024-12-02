@@ -27,22 +27,16 @@ PROJECT_ID=get_project_id()
 #endregion
 
 #region storage
-def get_calendar_blob()->storage.blob:
-    bucket_id = PROJECT_ID + '_b1'
-    client = storage.Client(PROJECT_ID)
-    bucket = client.bucket(bucket_id)
-    return bucket.blob('caltxt')
+def get_bucket(bucket_id=PROJECT_ID + '_b1'):
+    ''' to do: other buckets, create bucket if not exists '''
+    return storage.Client(PROJECT_ID).bucket(bucket_id)
 
-def upload_calendar():  
-    file = 'cal.csv'
-    file = 'cal.txt'
-    get_calendar_blob().upload_from_filename(file)
+def upload_file(file='cal.txt',bucket=get_bucket()):
+    bucket.upload_from_filename(file)
     print(f'uploaded {file}')
 
-def get_calendar()->pd.DataFrame():
-    blob = get_calendar_blob()
-    print(f'downloading {blob.name}')
-    return pd.read_csv(BytesIO(blob.download_as_bytes()))
+def download_blob_as_bytes(blob):
+    return BytesIO(blob.download_as_bytes())
 #endregion
 
 #region big query
@@ -78,3 +72,6 @@ def delete_bq_table(dataset_name, table_name):
 #endregion
 
 
+if __name__ == '__main__':
+    print(get_bucket('test2'))
+    
