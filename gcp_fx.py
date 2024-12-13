@@ -2,7 +2,13 @@ import os
 import json
 from google.cloud import storage, bigquery, pubsub_v1
 import pandas as pd
-from io import BytesIO
+
+import configparser
+cp = configparser.ConfigParser()
+cp.read('config/config.ini')
+
+import pydata_google_auth
+CREDENTIALS = pydata_google_auth.get_user_credentials('https://www.googleapis.com/auth/cloud-platform')
 
 def get_project_id():
     # windows
@@ -10,24 +16,25 @@ def get_project_id():
     # with open(adc_file, "r") as file:
     #     data = json.load(file)  
     # return data['quota_project_id']
-    import configparser
-    cp = configparser.ConfigParser()
-    cp.read('config/config.ini')
     return cp['GCP']['PROJECT_ID']
 PROJECT_ID=get_project_id()
 
 
 #region storage
 def get_bucket(bucket_id=PROJECT_ID + '_b1'):
-    ''' to do: other buckets, create bucket if not exists '''
-    return storage.Client(PROJECT_ID).bucket(bucket_id)
+    bucket = storage.Client(PROJECT_ID).bucket(bucket_id)
+    if not bucket.exists():
+        bucket.create(bucket_id)
+    return bucket
 
 def upload_file(file='cal.txt',bucket=get_bucket()):
     bucket.upload_from_filename(file)
     print(f'uploaded {file}')
 
-def download_blob_as_bytes(blob):
-    return BytesIO(blob.download_as_bytes())
+def blob_str(blob_name,bucket=get_bucket()):
+    blob = bucket.blob(blob_name) 
+    if blob.exists():
+        return blob.download_as_bytes().decode()
 #endregion
 
 #region big query
@@ -37,8 +44,6 @@ def print_meta_data(_df):
     return _df
 
 def query_bq(sql='select session_user()')->pd.DataFrame:
-    # import pydata_google_auth
-    # CREDENTIALS = pydata_google_auth.get_user_credentials('https://www.googleapis.com/auth/cloud-platform')
     client = bigquery.Client(PROJECT_ID)
     return client.query(sql).to_dataframe().pipe(print_meta_data)
 
@@ -93,11 +98,16 @@ def sub_pull(subscription):
     ack_ids = list(map(handle_msg,response.received_messages))
     if ack_ids:
         sub.acknowledge(request={'subscription': subscription,'ack_ids':ack_ids})
+
+def publish_msg(topic_name,msg):
+    topic_path=f'projects/{PROJECT_ID}/topics/{topic_name}'
+    pub.publish(topic_path,msg.encode("utf-8"))
 #endregion
 
 
 if __name__ == '__main__':
     print(PROJECT_ID)
-    # print(query_bq())
+    # sql = 'SELECT * FROM `bigquery-public-data.pypi.simple_requests` WHERE TIMESTAMP_TRUNC(timestamp, DAY) = TIMESTAMP("2024-12-08") LIMIT 1000'
+    # print(query_bq(sql))
 
     
