@@ -1,0 +1,61 @@
+steps:
+  # Step 0: Create a custom VPC network
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - compute
+      - networks
+      - create
+      - dataflow-east4-network
+      - --subnet-mode=custom
+    id: "Create VPC Network"
+
+  # Step 1: Create a subnet in the us-east4 region
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - compute
+      - networks
+      - subnets
+      - create
+      - dataflow-east4-subnet
+      - --network=dataflow-east4-network
+      - --region=us-east4
+      - --range=10.0.0.0/24
+    id: "Create Subnet"
+
+  # Step 2: Enable Private Google Access for the subnet
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - compute
+      - networks
+      - subnets
+      - update
+      - dataflow-east4-subnet
+      - --region=us-east4
+      - --enable-private-ip-google-access
+    id: "Enable Private Google Access"
+
+  # Step 3: Create a firewall rule to allow internal traffic within the VPC
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - compute
+      - firewall-rules
+      - create
+      - allow-internal-traffic
+      - --network=dataflow-east4-network
+      - --allow=tcp,udp,icmp
+      - --source-ranges=10.0.0.0/24
+    id: "Allow Internal Traffic"
+
+  # Step 4: Create a firewall rule to allow egress traffic to the internet
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - compute
+      - firewall-rules
+      - create
+      - allow-egress-east4
+      - --network=dataflow-east4-network
+      - --allow=tcp:443,tcp:80,icmp
+      - --direction=EGRESS
+      - --destination-ranges=0.0.0.0/0
+    id: "Allow Egress Traffic"
+

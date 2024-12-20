@@ -1,0 +1,36 @@
+# -----------------------------------------------------------------------------
+# To learn more about this file:
+#   https://cloud.google.com/build/docs/build-config
+#
+# To learn more about Cloud Build variable substitutions:
+#   https://cloud.google.com/build/docs/configuring-builds/substitute-variable-values#using_user-defined_substitutions
+# -----------------------------------------------------------------------------
+
+substitutions:
+  _JOB_NAME: ''
+  _TEMP_LOCATION: ''
+  _REGION: ''
+  _IMAGE: samples/dataflow-slim:latest
+
+steps:
+- name: gcr.io/$PROJECT_ID/$_IMAGE
+  entrypoint: python
+  args:
+  - /pipeline/main.py
+  - --runner=DataflowRunner
+  - --project=$PROJECT_ID
+  - --region=$_REGION
+  - --job_name=$_JOB_NAME
+  - --temp_location=$_TEMP_LOCATION
+  - --sdk_container_image=gcr.io/$PROJECT_ID/$_IMAGE
+  - --network=dataflow-east4-network
+  # - --network=my-dataflow-network
+  # - --subnetwork=regions/$_REGION/subnetworks/my-dataflow-subnet
+  - --subnetwork=regions/$_REGION/subnetworks/dataflow-east4-subnet
+  - --no_use_public_ips
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+# Use the Compute Engine default service account to launch the job.
+serviceAccount: projects/$PROJECT_ID/serviceAccounts/$PROJECT_NUMBER-compute@developer.gserviceaccount.com
