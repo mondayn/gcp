@@ -12,3 +12,5 @@
 - nlp: Entity recognition analysis of top terms searched on google.com
 
 - gcp_fx: reusable code for cloud storage, pubsub, bigquery
+
+- [parse_fhir](https://github.com/mondayn/gcp/blob/main/parse_fhir.ipynb): manually parse sample files from synthea.  better approach would be to load via gcp healthcare api
