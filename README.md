@@ -9,6 +9,8 @@
 
 - [dataflow](https://github.com/mondayn/gcp/blob/main/dataflow.ipynb): parse nyc taxi pubsub, stream into big query
 
+- [dataflow_tf](https://github.com/mondayn/gcp/blob/main/dataflow_tf/dataflow.ipynb): terraform setup, post csv to bucket, dataflow csv into big query
+
 - nlp: Entity recognition analysis of top terms searched on google.com
 
 - gcp_fx: reusable code for cloud storage, pubsub, bigquery
