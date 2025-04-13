@@ -18,6 +18,15 @@ def mm(graph):
   graphbytes = graph.encode("ascii")
   mm_display(graphbytes)
 
+def display_graph():
+  return mm(
+  '''graph LR    
+      a((pandas))-->
+      b@{ shape: doc, label: "random.csv" }--DataFlow-->
+      c[(BigQuery)]-->
+      d[fa:fa-user this notebook]
+  '''
+  )
 
 #   graph LR
 #     B((Start))-->
